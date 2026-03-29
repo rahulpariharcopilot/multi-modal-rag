@@ -62,11 +62,16 @@ async def embed_texts(
     all_embeddings: list[list[float]] = []
     for i in range(0, len(sanitised), batch_size):
         batch = sanitised[i : i + batch_size]
-        response = await client.embeddings.create(
-            model=model,
-            input=batch,
-            dimensions=dimensions,
-        )
+        
+        kwargs = {
+            "model": model,
+            "input": batch,
+        }
+        # Only pass dimensions for models that are known to support it under OpenAI API
+        if dimensions and model.startswith("text-embedding-3"):
+            kwargs["dimensions"] = dimensions
+            
+        response = await client.embeddings.create(**kwargs)
         # API guarantees order is preserved
         all_embeddings.extend(item.embedding for item in response.data)
 

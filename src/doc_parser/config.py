@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     # Parser backend
-    parser_backend: str = "cloud"  # "cloud" | "ollama"
+    parser_backend: str = "ollama"  # "cloud" | "ollama"
     z_ai_api_key: SecretStr | None = None
     log_level: str = "INFO"
     output_dir: str = "./output"
