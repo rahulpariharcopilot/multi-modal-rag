@@ -7,6 +7,8 @@ on:
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  ECS_CLUSTER: doc-parser-cluster
+  ECS_SERVICE_APP: doc-parser-app
 
 jobs:
   build-and-push:
@@ -55,8 +57,8 @@ jobs:
       - name: Force new deployment
         run: |
           aws ecs update-service \
-            --cluster ${{ secrets.ECS_CLUSTER }} \
-            --service ${{ secrets.ECS_SERVICE_APP }} \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE_APP }} \
             --force-new-deployment
 
       - name: Wait for service stable
@@ -64,16 +66,16 @@ jobs:
           echo "Polling ECS service stability (max 15 min)..."
           for i in $(seq 1 60); do
             RUNNING=$(aws ecs describe-services \
-              --cluster ${{ secrets.ECS_CLUSTER }} \
-              --services ${{ secrets.ECS_SERVICE_APP }} \
+              --cluster ${{ env.ECS_CLUSTER }} \
+              --services ${{ env.ECS_SERVICE_APP }} \
               --query 'services[0].runningCount' --output text)
             DESIRED=$(aws ecs describe-services \
-              --cluster ${{ secrets.ECS_CLUSTER }} \
-              --services ${{ secrets.ECS_SERVICE_APP }} \
+              --cluster ${{ env.ECS_CLUSTER }} \
+              --services ${{ env.ECS_SERVICE_APP }} \
               --query 'services[0].desiredCount' --output text)
             PENDING=$(aws ecs describe-services \
-              --cluster ${{ secrets.ECS_CLUSTER }} \
-              --services ${{ secrets.ECS_SERVICE_APP }} \
+              --cluster ${{ env.ECS_CLUSTER }} \
+              --services ${{ env.ECS_SERVICE_APP }} \
               --query 'services[0].pendingCount' --output text)
             echo "Attempt $i/60 — running=$RUNNING desired=$DESIRED pending=$PENDING"
             if [ "$RUNNING" = "$DESIRED" ] && [ "$PENDING" = "0" ]; then
